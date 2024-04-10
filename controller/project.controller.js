@@ -22,9 +22,9 @@ const create = async (req, res, filenames) => {
 
      createBoard(result._id);
 
-    res.send(result);
+    res.status(200).send(result);
   } catch (error) {
-    res.send(error);
+    res.status(500).send("save project controller error " + error);
   }
 };
 

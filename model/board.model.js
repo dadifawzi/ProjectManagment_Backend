@@ -8,7 +8,6 @@ completed:{type:Array,default:[]},
 inhold:{type:Array,default:[]},
 date:{type:Date}
 
-
 })
 
 module.exports = Board ; 

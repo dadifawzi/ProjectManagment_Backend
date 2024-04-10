@@ -55,23 +55,24 @@ const getClientById = async (req, res) => {
 };
 
 // Update client by ID
-const updateClientById = async (req, res) => {
-    const updates = Object.keys(req.body);
-    const allowedUpdates = ['fullname', 'email', 'address','tel', 'image', 'date'];
-    const isValidOperation = updates.every(update => allowedUpdates.includes(update));
-
-    if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' });
-    }
-
+const updateClientById = async (req, res,fileName) => {
     try {
-        const client = await Client.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!client) {
-            return res.status(404).send();
+        
+        let id = req.params.id;
+        let data = req.body;
+        
+
+        if(fileName.length > 0){
+            data.image = fileName;
         }
-        res.send(client);
+
+        let updatedClient = await Client.findByIdAndUpdate({_id: id},data);
+        
+        res.status(200).send(updatedClient);
+
+
     } catch (error) {
-        res.status(400).send(error);
+        res.status(500).send(error)
     }
 };
 

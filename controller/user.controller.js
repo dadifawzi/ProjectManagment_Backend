@@ -44,24 +44,36 @@ console.log('admin does not exist!');
 //SignIn 
 const signIn = async (req, res) => {
     try {
-        console.log('signin fuction user ');
+
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        console.log(user);
-        if (!user) {
-            return res.status(401).send({ error: 'Invalid email or password' });
+
+        const user = await User.findOne({ email: email });
+        if(!user){
+           return res.status(401).send('email or password invalid');
+        }   
+
+        const valid = bcrypt.compareSync( password, user.password );
+
+        if(!valid){
+            return res.status(401).send('email or password invalid');
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(401).send({ error: 'Invalid email or password' });
+        let payload = {
+            _id: user._id,
+            fullname: user.fullname,
+            email: user.email,
+            tel: user.tel,
+            image: user.image,
+            role: user.role,
+            tags: user.tags,
+            date: user.date
         }
 
-        const token = jwt.sign({ _id: user._id.toString() },process.env.SECRET_KEY);
-        res.send({ user, token });
+        let token = jwt.sign( payload, process.env.SECRET_KEY );
+        res.status(200).send({ myToken: token });
+
     } catch (error) {
-        res.status(500).send();
+        res.status(500).send(error)
     }
 };
 
@@ -70,7 +82,7 @@ const signIn = async (req, res) => {
 const createUser = async (req, res ) => {
 let data = req.body ; 
 let userexist = true ; 
- const imageuploaded = req.file ? req.file.filename : null;
+const imageuploaded = req.file ? req.file.filename : null;
 const userExists = await User.findOne({ email:data.email });
 
 if (userExists) {
@@ -123,23 +135,31 @@ const getUserById = async (req, res) => {
 };
 
 // Update user by ID
-const updateUserById = async (req, res) => {
-    const updates = Object.keys(req.body);
-    const allowedUpdates = ['fullname', 'email', 'password', 'tel', 'image', 'tags', 'date', 'role'];
-    const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+const updateUserById = async (req, res , fileName) => {
+    
+ try {
+        
+        let id = req.params.id;
+        let data = req.body;
+        data.tags = JSON.parse(data.tags);
 
-    if (!isValidOperation) {
-        return res.status(400).send({ error: 'Invalid updates!' });
-    }
-    try {
-        const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!user) {
-            return res.status(404).send();
+        if(fileName.length > 0){
+            data.image = fileName;
         }
-        res.send(user);
+
+        if(data.password){
+            data.password = bcrypt.hashSync(data.password, 10);
+        }
+
+        let updatedUser = await User.findByIdAndUpdate({_id: id},data);
+        
+        res.status(200).send(updatedUser);
+
+
     } catch (error) {
-        res.status(400).send(error);
+        res.status(500).send(error)
     }
+
 };
 
 // Delete user by ID

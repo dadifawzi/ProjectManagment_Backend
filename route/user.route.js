@@ -28,10 +28,10 @@ const upload = multer({
 
 
 // Routes for user management
-router.post('/signup',upload.single('image') ,(req,res)=>{ userController.createUser(req,res,fileName) ; fileName='' ; });
+router.post('/create',upload.single('image') ,(req,res)=>{ userController.createUser(req,res,fileName) ; fileName='' ; });
 router.get('/users', userController.getUsers);
 router.get('/users/:id', userController.getUserById);
-router.put('/users/:id', userController.updateUserById);
+router.put('/users/:id',upload.single('image') , (req,res)=>{ userController.updateUserById(req,res,fileName)  ; fileName='' ; });
 router.delete('/users/:id', userController.deleteUserById);
 
 // Routes for authentication
